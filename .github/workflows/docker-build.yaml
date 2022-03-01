@@ -1,0 +1,58 @@
+name: Docker images building and pushing
+on:
+  push:
+    tags: 
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+-*"
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+
+
+      -
+        name: Docker meta for Template executor
+        id: meta_template_executor
+        uses: docker/metadata-action@v3
+        with:
+          images: kubeshop/testkube-template-executor
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - 
+        name: Build Template Executor
+        uses: docker/bake-action@v1
+        with:
+          files: |
+            build/template-executor/docker-bake.hcl
+            ${{ steps.meta_template_executor.outputs.bake-file }}
+          targets: build
+          set: build.args.TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          push: true
+
+
