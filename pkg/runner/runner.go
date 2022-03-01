@@ -8,7 +8,7 @@ import (
 
 func NewRunner() *ExampleRunner {
 	return &ExampleRunner{
-		Fetcher: content.NewFetcher(),
+		Fetcher: content.NewFetcher(""),
 	}
 }
 
@@ -44,7 +44,7 @@ func (r *ExampleRunner) Run(execution testkube.Execution) (result testkube.Execu
 
 	// TODO return ExecutionResult
 	return testkube.ExecutionResult{
-		Status: testkube.StatusPtr(testkube.SUCCESS_ExecutionStatus),
+		Status: testkube.ExecutionStatusSuccess,
 		Output: "exmaple test output",
 	}, nil
 }
