@@ -23,6 +23,8 @@ vendor/
 Chart.lock
 
 .DS_Store
+.dccache
+
 bin/
 site
 dist/
