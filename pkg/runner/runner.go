@@ -1,7 +1,10 @@
 package runner
 
 import (
+	"fmt"
+
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
+	"github.com/kubeshop/testkube/pkg/executor"
 	"github.com/kubeshop/testkube/pkg/executor/content"
 	"github.com/kubeshop/testkube/pkg/executor/output"
 )
@@ -22,28 +25,32 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		return result, err
 	}
 
-	output.PrintEvent("created content path", path)
+	output.PrintEvent("Created content path", path)
 
-	if execution.Content.IsFile() {
-		output.PrintEvent("using file", execution)
-		// TODO implement file based test content for string, git-file, file-uri
-		//      or remove if not used
+	if !execution.Content.IsFile() {
+		return result, testkube.ErrTestContentTypeNotFile
 	}
 
-	if execution.Content.IsDir() {
-		output.PrintEvent("using dir", execution)
-		// TODO implement file based test content for git-dir
-		//      or remove if not used
+	args := []string{"run"}
+
+	// convert executor env variables to k6 env variables
+	for key, value := range execution.Envs {
+		env_var := fmt.Sprintf("%s=%s", key, value)
+		args = append(args, "-e", env_var)
 	}
 
-	// TODO run executor here
+	// pass additional arguments/flags to k6
+	args = append(args, execution.Args...)
+	args = append(args, path)
 
-	// error result should be returned if something is not ok
-	// return result.Err(fmt.Errorf("some test execution related error occured"))
+	output.PrintEvent("Running k6", args)
+	output, err := executor.Run("", "k6", args...)
+	if err != nil {
+		return result.Err(err), nil
+	}
 
-	// TODO return ExecutionResult
 	return testkube.ExecutionResult{
-		Status: testkube.ExecutionStatusSuccess,
-		Output: "exmaple test output",
+		Status: testkube.StatusPtr(testkube.SUCCESS_ExecutionStatus),
+		Output: string(output),
 	}, nil
 }
