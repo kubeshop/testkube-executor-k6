@@ -1,5 +1,6 @@
 NAME ?= testkube-k6-executor
 BIN_DIR ?= $(HOME)/bin
+NAMESPACE ?= "default"
 
 build:
 	go build -o $(BIN_DIR)/$(NAME) cmd/agent/main.go 
