@@ -5,6 +5,7 @@ metadata:
   namespace: testkube
 spec:
   executor_type: job
-  image: lreimer/testkube-k6-executor:0.36.0
+  # not best practice but for now we use latest
+  image: lreimer/testkube-k6-executor
   types:
   - k6/script
