@@ -1,7 +1,10 @@
 package runner
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
@@ -48,6 +51,14 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	directory := ""
 	if execution.Content.IsDir() {
 		directory = path
+
+		// sanity checking
+		// the last argument needs to be an existing file
+		script_file := filepath.Join(directory, args[len(args)-1])
+		file_info, err := os.Stat(script_file)
+		if errors.Is(err, os.ErrNotExist) || file_info.IsDir() {
+			return result, fmt.Errorf("k6 script %s not found", script_file)
+		}
 	}
 
 	output.PrintEvent("Running k6", args)

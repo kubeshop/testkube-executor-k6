@@ -123,4 +123,25 @@ func TestRunErrors(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
 	})
+
+	t.Run("Run k6 from directory with missing script arg", func(t *testing.T) {
+		// given
+		runner := NewRunner()
+		execution := testkube.NewQueuedExecution()
+		execution.Content = &testkube.TestContent{
+			Type_: string(testkube.TestContentTypeGitDir),
+			Repository: &testkube.Repository{
+				Uri:    "https://github.com/kubeshop/testkube-executor-k6.git",
+				Branch: "main",
+				Path:   "examples",
+			},
+		}
+		execution.Args = []string{}
+
+		// when
+		_, err := runner.Run(*execution)
+
+		// then
+		assert.Error(t, err)
+	})
 }
