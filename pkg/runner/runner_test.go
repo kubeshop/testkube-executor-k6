@@ -139,9 +139,10 @@ func TestRunErrors(t *testing.T) {
 		execution.Args = []string{}
 
 		// when
-		_, err := runner.Run(*execution)
+		result, err := runner.Run(*execution)
 
 		// then
-		assert.Error(t, err)
+		assert.NoError(t, err)
+		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
 	})
 }

@@ -57,7 +57,12 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		script_file := filepath.Join(directory, args[len(args)-1])
 		file_info, err := os.Stat(script_file)
 		if errors.Is(err, os.ErrNotExist) || file_info.IsDir() {
-			return result, fmt.Errorf("k6 script %s not found", script_file)
+			return testkube.ExecutionResult{
+				Status:       testkube.StatusPtr(testkube.ERROR__ExecutionStatus),
+				Output:       "",
+				OutputType:   "text/plain",
+				ErrorMessage: string(fmt.Sprintf("k6 script %s not found", script_file)),
+			}, nil
 		}
 	}
 
