@@ -49,25 +49,30 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	// pass additional executor arguments/flags to k6
 	args = append(args, execution.Args...)
 
+	var directory string
+
 	// in case of a test file execution we will pass the
 	// file path as final parameter to k6
 	if execution.Content.IsFile() {
 		args = append(args, "test-content")
+		directory = r.Params.Datadir
 	}
 
 	// in case of Git directory we will run k6 here and
 	// use the last argument as test file
 	if execution.Content.IsDir() {
-		// sanity checking
-		script_file := filepath.Join(r.Params.Datadir, args[len(args)-1])
+		directory = filepath.Join(r.Params.Datadir, "repo")
+
+		// sanity checking for test script
+		script_file := filepath.Join(directory, args[len(args)-1])
 		file_info, err := os.Stat(script_file)
 		if errors.Is(err, os.ErrNotExist) || file_info.IsDir() {
 			return result.Err(fmt.Errorf("k6 test script %s not found", script_file)), nil
 		}
 	}
 
-	output.PrintEvent("Running k6", args)
-	output, err := executor.Run(r.Params.Datadir, "k6", args...)
+	output.PrintEvent("Running", directory, "k6", args)
+	output, err := executor.Run(directory, "k6", args...)
 	if err != nil {
 		return result.Err(err), nil
 	}
