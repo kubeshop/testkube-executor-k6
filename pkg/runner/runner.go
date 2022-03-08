@@ -1,7 +1,10 @@
 package runner
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
@@ -27,10 +30,6 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	output.PrintEvent("Created content path", path)
 
-	if !execution.Content.IsFile() {
-		return result, testkube.ErrTestContentTypeNotFile
-	}
-
 	args := []string{"run"}
 
 	// convert executor env variables to k6 env variables
@@ -39,12 +38,36 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		args = append(args, "-e", env_var)
 	}
 
-	// pass additional arguments/flags to k6
+	// pass additional executor arguments/flags to k6
 	args = append(args, execution.Args...)
-	args = append(args, path)
+
+	// in case of a test file execution we will pass the
+	// file path as final parameter to k6
+	if execution.Content.IsFile() {
+		args = append(args, path)
+	}
+
+	// in case of Git directory we will run k6 here
+	directory := ""
+	if execution.Content.IsDir() {
+		directory = path
+
+		// sanity checking
+		// the last argument needs to be an existing file
+		script_file := filepath.Join(directory, args[len(args)-1])
+		file_info, err := os.Stat(script_file)
+		if errors.Is(err, os.ErrNotExist) || file_info.IsDir() {
+			return testkube.ExecutionResult{
+				Status:       testkube.StatusPtr(testkube.ERROR__ExecutionStatus),
+				Output:       "",
+				OutputType:   "text/plain",
+				ErrorMessage: string(fmt.Sprintf("k6 script %s not found", script_file)),
+			}, nil
+		}
+	}
 
 	output.PrintEvent("Running k6", args)
-	output, err := executor.Run("", "k6", args...)
+	output, err := executor.Run(directory, "k6", args...)
 	if err != nil {
 		return result.Err(err), nil
 	}

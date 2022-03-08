@@ -2,7 +2,9 @@ name: Code build and checks
 
 on:
   push:
-    branches: [main]
+    # build all branches for now
+    # alternatively we could do '!main'
+    branches: ['**']
   pull_request:
     branches: [main]
 

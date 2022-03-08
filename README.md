@@ -28,12 +28,16 @@ export default function () {
 Issue the following commands to create and start the script:
 ```bash
 kubectl testkube tests create --file examples/k6-test-script.js --type "k6/script" --name k6-test-script
-kubectl testkube tests create --name k6-test-script --watch
+kubectl testkube tests run --watch k6-test-script
 ```
 
 ## Examples
 
-TODO: add more examples
+```
+# run k6-test-script.js from this Git repository
+kubectl testkube tests create --git-uri https://github.com/kubeshop/testkube-executor-k6.git --git-branch main --git-path examples --type "k6/script" --name k6-test-script-git
+kubectl testkube tests run --args k6-test-script.js --watch k6-test-script-git
+```
 
 # Issues and enchancements 
 
