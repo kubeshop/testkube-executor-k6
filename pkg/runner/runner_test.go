@@ -72,7 +72,21 @@ func TestRunFiles(t *testing.T) {
 
 func TestRunDirs(t *testing.T) {
 	// setup
-	os.Setenv("RUNNER_DATADIR", ".")
+	tempDir, _ := os.MkdirTemp("", "*")
+	os.Setenv("RUNNER_DATADIR", tempDir)
+
+	repoDir := filepath.Join(tempDir, "repo")
+	os.Mkdir(repoDir, 0755)
+
+	k6_script, err := ioutil.ReadFile("k6-test-script.js")
+	if err != nil {
+		assert.FailNow(t, "Unable to read k6 test script")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(repoDir, "k6-test-script.js"), k6_script, 0644)
+	if err != nil {
+		assert.FailNow(t, "Unable to write k6 runner test content file")
+	}
 
 	t.Run("Run k6 from directory with script argument", func(t *testing.T) {
 		// given
