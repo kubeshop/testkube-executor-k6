@@ -2,6 +2,8 @@ package runner
 
 import (
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
@@ -9,14 +11,22 @@ import (
 )
 
 func TestRunFiles(t *testing.T) {
+	// setup
+	tempDir := os.TempDir()
+	os.Setenv("RUNNER_DATADIR", tempDir)
+
+	k6_script, err := ioutil.ReadFile("k6-test-script.js")
+	if err != nil {
+		assert.FailNow(t, "Unable to read k6 test script")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(tempDir, "test-content"), k6_script, 0644)
+	if err != nil {
+		assert.FailNow(t, "Unable to write k6 runner test content file")
+	}
 
 	t.Run("Run k6 with simple script", func(t *testing.T) {
 		// given
-		k6_script, err := ioutil.ReadFile("k6-test-script.js")
-		if err != nil {
-			assert.FailNow(t, "Unable to read k6 test script.")
-		}
-
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent(string(k6_script))
@@ -31,11 +41,6 @@ func TestRunFiles(t *testing.T) {
 
 	t.Run("Run k6 with arguments and simple script", func(t *testing.T) {
 		// given
-		k6_script, err := ioutil.ReadFile("k6-test-script.js")
-		if err != nil {
-			assert.FailNow(t, "Unable to read k6 test script.")
-		}
-
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent(string(k6_script))
@@ -51,11 +56,6 @@ func TestRunFiles(t *testing.T) {
 
 	t.Run("Run k6 with ENV variables and script", func(t *testing.T) {
 		// given
-		k6_script, err := ioutil.ReadFile("k6-env-test-script.js")
-		if err != nil {
-			assert.FailNow(t, "Unable to read k6 test script.")
-		}
-
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent(string(k6_script))
@@ -71,6 +71,9 @@ func TestRunFiles(t *testing.T) {
 }
 
 func TestRunDirs(t *testing.T) {
+	// setup
+	os.Setenv("RUNNER_DATADIR", ".")
+
 	t.Run("Run k6 from directory with script argument", func(t *testing.T) {
 		// given
 		runner := NewRunner()
@@ -97,6 +100,9 @@ func TestRunDirs(t *testing.T) {
 func TestRunErrors(t *testing.T) {
 
 	t.Run("Run k6 with no script", func(t *testing.T) {
+		// setup
+		os.Setenv("RUNNER_DATADIR", ".")
+
 		// given
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
@@ -111,6 +117,9 @@ func TestRunErrors(t *testing.T) {
 	})
 
 	t.Run("Run k6 with invalid arguments", func(t *testing.T) {
+		// setup
+		os.Setenv("RUNNER_DATADIR", ".")
+
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
@@ -125,6 +134,9 @@ func TestRunErrors(t *testing.T) {
 	})
 
 	t.Run("Run k6 from directory with missing script arg", func(t *testing.T) {
+		// setup
+		os.Setenv("RUNNER_DATADIR", ".")
+
 		// given
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
