@@ -172,3 +172,26 @@ func TestRunErrors(t *testing.T) {
 		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
 	})
 }
+
+func TestParse(t *testing.T) {
+	// setup
+	summary, err := ioutil.ReadFile("k6-summary.txt")
+	if err != nil {
+		assert.FailNow(t, "Unable to read k6 test summary")
+	}
+
+	t.Run("Parse Scenario Name", func(t *testing.T) {
+		name := parseScenarioName(string(summary))
+		assert.Equal(t, "* default: 1 iterations for each of 1 VUs (maxDuration: 10m0s, gracefulStop: 30s)", name)
+	})
+
+	t.Run("Parse Scenario Duration", func(t *testing.T) {
+		duration := parseScenarioDuration(string(summary))
+		assert.Equal(t, "00m01.1s/10m0s", duration)
+	})
+
+	t.Run("Parse Scenario Status", func(t *testing.T) {
+		status := parseScenarioStatus(string(summary))
+		assert.Equal(t, "success", status)
+	})
+}

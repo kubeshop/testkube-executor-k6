@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
@@ -78,7 +79,55 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	}
 
 	return testkube.ExecutionResult{
-		Status: testkube.StatusPtr(testkube.SUCCESS_ExecutionStatus),
-		Output: string(output),
+		Status:     testkube.StatusPtr(testkube.SUCCESS_ExecutionStatus),
+		Output:     string(output),
+		OutputType: "text/plain",
+		Steps: []testkube.ExecutionStepResult{
+			{
+				// use the scenario name and description here
+				Name:     parseScenarioName(string(output)),
+				Duration: parseScenarioDuration(string(output)),
+				Status:   parseScenarioStatus(string(output)),
+			},
+		},
 	}, nil
+}
+
+func parseScenarioName(summary string) string {
+	lines := splitSummaryBody(summary)
+	var name string
+
+	for i, line := range lines {
+		if strings.Contains(line, "scenario") {
+			// take next line and trim leading spaces
+			name = strings.TrimSpace(lines[i+1])
+			break
+		}
+	}
+
+	return name
+}
+
+func parseScenarioDuration(summary string) string {
+	lines := splitSummaryBody(summary)
+	var duration string
+
+	for i, line := range lines {
+		if strings.Contains(line, "running") {
+			// take next line and trim leading spaces
+			metrics := strings.Split(lines[i+1], " ")
+			duration = metrics[6]
+			break
+		}
+	}
+
+	return duration
+}
+
+func parseScenarioStatus(summary string) string {
+	return string(testkube.SUCCESS_ExecutionStatus)
+}
+
+func splitSummaryBody(summary string) []string {
+	return strings.Split(summary, "\n")
 }
