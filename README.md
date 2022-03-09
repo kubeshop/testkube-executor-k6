@@ -36,7 +36,7 @@ kubectl testkube tests run --watch k6-test-script
 ```
 # run k6-test-script.js from this Git repository
 kubectl testkube tests create --git-uri https://github.com/kubeshop/testkube-executor-k6.git --git-branch main --git-path examples --type "k6/script" --name k6-test-script-git
-kubectl testkube tests run --args k6-test-script.js --watch k6-test-script-git
+kubectl testkube tests run --args examples/k6-test-script.js --watch k6-test-script-git
 ```
 
 # Issues and enchancements 
