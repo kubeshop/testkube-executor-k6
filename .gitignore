@@ -28,3 +28,8 @@ Chart.lock
 bin/
 site
 dist/
+
+summary.json
+junit.xml
+
+.vscode/
