@@ -16,3 +16,13 @@ export default function () {
   });
   sleep(1);
 }
+
+import { jUnit, textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
+
+export function handleSummary(data) {
+  return {
+    'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+    'junit.xml': jUnit(data), // but also transform it and save it as a JUnit XML...
+    'summary.json': JSON.stringify(data), // and a JSON with all the details...
+  };
+}
