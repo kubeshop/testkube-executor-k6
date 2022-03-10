@@ -79,7 +79,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	}
 
 	return testkube.ExecutionResult{
-		Status:     testkube.StatusPtr(testkube.SUCCESS_ExecutionStatus),
+		Status:     testkube.ExecutionStatusSuccess,
 		Output:     string(output),
 		OutputType: "text/plain",
 		Steps: []testkube.ExecutionStepResult{
