@@ -15,12 +15,12 @@ func TestRunFiles(t *testing.T) {
 	tempDir := os.TempDir()
 	os.Setenv("RUNNER_DATADIR", tempDir)
 
-	k6_script, err := ioutil.ReadFile("k6-test-script.js")
+	k6Script, err := ioutil.ReadFile("k6-test-script.js")
 	if err != nil {
 		assert.FailNow(t, "Unable to read k6 test script")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(tempDir, "test-content"), k6_script, 0644)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "test-content"), k6Script, 0644)
 	if err != nil {
 		assert.FailNow(t, "Unable to write k6 runner test content file")
 	}
@@ -29,7 +29,7 @@ func TestRunFiles(t *testing.T) {
 		// given
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
-		execution.Content = testkube.NewStringTestContent(string(k6_script))
+		execution.Content = testkube.NewStringTestContent(string(k6Script))
 
 		// when
 		result, err := runner.Run(*execution)
@@ -43,7 +43,7 @@ func TestRunFiles(t *testing.T) {
 		// given
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
-		execution.Content = testkube.NewStringTestContent(string(k6_script))
+		execution.Content = testkube.NewStringTestContent(string(k6Script))
 		execution.Args = []string{"--vus", "2", "--duration", "1s"}
 
 		// when
@@ -58,7 +58,7 @@ func TestRunFiles(t *testing.T) {
 		// given
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
-		execution.Content = testkube.NewStringTestContent(string(k6_script))
+		execution.Content = testkube.NewStringTestContent(string(k6Script))
 		execution.Envs = map[string]string{"TARGET_HOSTNAME": "kubeshop.github.io"}
 
 		// when
@@ -78,12 +78,12 @@ func TestRunDirs(t *testing.T) {
 	repoDir := filepath.Join(tempDir, "repo")
 	os.Mkdir(repoDir, 0755)
 
-	k6_script, err := ioutil.ReadFile("k6-test-script.js")
+	k6Script, err := ioutil.ReadFile("k6-test-script.js")
 	if err != nil {
 		assert.FailNow(t, "Unable to read k6 test script")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(repoDir, "k6-test-script.js"), k6_script, 0644)
+	err = ioutil.WriteFile(filepath.Join(repoDir, "k6-test-script.js"), k6Script, 0644)
 	if err != nil {
 		assert.FailNow(t, "Unable to write k6 runner test content file")
 	}
@@ -175,7 +175,7 @@ func TestRunErrors(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	// setup
-	summary, err := ioutil.ReadFile("k6-summary.txt")
+	summary, err := ioutil.ReadFile("k6-test-summary.txt")
 	if err != nil {
 		assert.FailNow(t, "Unable to read k6 test summary")
 	}
