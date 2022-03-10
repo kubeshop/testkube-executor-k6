@@ -15,7 +15,7 @@ func TestRunFiles(t *testing.T) {
 	tempDir := os.TempDir()
 	os.Setenv("RUNNER_DATADIR", tempDir)
 
-	k6Script, err := ioutil.ReadFile("k6-test-script.js")
+	k6Script, err := ioutil.ReadFile("../../examples/k6-test-script.js")
 	if err != nil {
 		assert.FailNow(t, "Unable to read k6 test script")
 	}
@@ -78,7 +78,7 @@ func TestRunDirs(t *testing.T) {
 	repoDir := filepath.Join(tempDir, "repo")
 	os.Mkdir(repoDir, 0755)
 
-	k6Script, err := ioutil.ReadFile("k6-test-script.js")
+	k6Script, err := ioutil.ReadFile("../../examples/k6-test-script.js")
 	if err != nil {
 		assert.FailNow(t, "Unable to read k6 test script")
 	}
@@ -97,7 +97,6 @@ func TestRunDirs(t *testing.T) {
 			Repository: &testkube.Repository{
 				Uri:    "https://github.com/kubeshop/testkube-executor-k6.git",
 				Branch: "main",
-				Path:   "examples",
 			},
 		}
 		execution.Args = []string{"--duration", "1s", "k6-test-script.js"}
@@ -175,7 +174,7 @@ func TestRunErrors(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	// setup
-	summary, err := ioutil.ReadFile("k6-test-summary.txt")
+	summary, err := ioutil.ReadFile("../../examples/k6-test-summary.txt")
 	if err != nil {
 		assert.FailNow(t, "Unable to read k6 test summary")
 	}
