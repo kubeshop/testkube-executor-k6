@@ -74,23 +74,38 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	output.PrintEvent("Running", directory, "k6", args)
 	output, err := executor.Run(directory, "k6", args...)
-	if err != nil {
-		return result.Err(err), nil
+	return finalExecutionResult(output, err), nil
+}
+
+func finalExecutionResult(output []byte, err error) (result testkube.ExecutionResult) {
+	if err == nil {
+		result.Status = testkube.ExecutionStatusSuccess
+	} else {
+		result.Status = testkube.ExecutionStatusError
+		result.ErrorMessage = err.Error()
+		if strings.Contains(result.ErrorMessage, "exit status 99") {
+			// tests have run, but some checks + thresholds have failed
+			result.ErrorMessage = result.ErrorMessage + ". Some thresholds have failed"
+		} else if strings.Contains(result.ErrorMessage, "exit status 255") {
+			// k6 was unable to run at all
+			return result
+		}
 	}
 
-	return testkube.ExecutionResult{
-		Status:     testkube.ExecutionStatusSuccess,
-		Output:     string(output),
-		OutputType: "text/plain",
-		Steps: []testkube.ExecutionStepResult{
-			{
-				// use the scenario name and description here
-				Name:     parseScenarioName(string(output)),
-				Duration: parseScenarioDuration(string(output)),
-				Status:   parseScenarioStatus(string(output)),
-			},
+	// always set these, no matter if error or success
+	result.Output = string(output)
+	result.OutputType = "text/plain"
+
+	result.Steps = []testkube.ExecutionStepResult{
+		{
+			// use the scenario name and description here
+			Name:     parseScenarioName(string(output)),
+			Duration: parseScenarioDuration(string(output)),
+			Status:   parseScenarioStatus(string(output)),
 		},
-	}, nil
+	}
+
+	return result
 }
 
 func parseScenarioName(summary string) string {
