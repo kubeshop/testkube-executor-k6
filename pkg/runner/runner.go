@@ -85,8 +85,8 @@ func finalExecutionResult(output []byte, err error) (result testkube.ExecutionRe
 		result.ErrorMessage = err.Error()
 		if strings.Contains(result.ErrorMessage, "exit status 99") {
 			// tests have run, but some checks + thresholds have failed
-			result.ErrorMessage = result.ErrorMessage + ". Some thresholds have failed"
-		} else if strings.Contains(result.ErrorMessage, "exit status 255") {
+			result.ErrorMessage = "some thresholds have failed"
+		} else {
 			// k6 was unable to run at all
 			return result
 		}

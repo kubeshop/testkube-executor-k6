@@ -15,21 +15,12 @@ func TestRunFiles(t *testing.T) {
 	tempDir := os.TempDir()
 	os.Setenv("RUNNER_DATADIR", tempDir)
 
-	k6Script, err := ioutil.ReadFile("../../examples/k6-test-script.js")
-	if err != nil {
-		assert.FailNow(t, "Unable to read k6 test script")
-	}
-
-	err = ioutil.WriteFile(filepath.Join(tempDir, "test-content"), k6Script, 0644)
-	if err != nil {
-		assert.FailNow(t, "Unable to write k6 runner test content file")
-	}
-
 	t.Run("Run k6 with simple script", func(t *testing.T) {
 		// given
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
-		execution.Content = testkube.NewStringTestContent(string(k6Script))
+		execution.Content = testkube.NewStringTestContent("")
+		writeTestContent(t, tempDir, "../../examples/k6-test-script.js")
 
 		// when
 		result, err := runner.Run(*execution)
@@ -37,14 +28,16 @@ func TestRunFiles(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Len(t, result.Steps, 1)
 	})
 
 	t.Run("Run k6 with arguments and simple script", func(t *testing.T) {
 		// given
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
-		execution.Content = testkube.NewStringTestContent(string(k6Script))
+		execution.Content = testkube.NewStringTestContent("")
 		execution.Args = []string{"--vus", "2", "--duration", "1s"}
+		writeTestContent(t, tempDir, "../../examples/k6-test-script.js")
 
 		// when
 		result, err := runner.Run(*execution)
@@ -52,14 +45,16 @@ func TestRunFiles(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Len(t, result.Steps, 1)
 	})
 
 	t.Run("Run k6 with ENV variables and script", func(t *testing.T) {
 		// given
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
-		execution.Content = testkube.NewStringTestContent(string(k6Script))
+		execution.Content = testkube.NewStringTestContent("")
 		execution.Envs = map[string]string{"TARGET_HOSTNAME": "kubeshop.github.io"}
+		writeTestContent(t, tempDir, "../../examples/k6-test-environment.js")
 
 		// when
 		result, err := runner.Run(*execution)
@@ -67,6 +62,30 @@ func TestRunFiles(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Len(t, result.Steps, 1)
+	})
+}
+
+func TestRunAdvanced(t *testing.T) {
+	// setup
+	tempDir := os.TempDir()
+	os.Setenv("RUNNER_DATADIR", tempDir)
+
+	t.Run("Run k6 with checks and thresholds", func(t *testing.T) {
+		// given
+		runner := NewRunner()
+		execution := testkube.NewQueuedExecution()
+		execution.Content = testkube.NewStringTestContent("")
+		writeTestContent(t, tempDir, "../../examples/k6-test-thresholds.js")
+
+		// when
+		result, err := runner.Run(*execution)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, result.ErrorMessage, "some thresholds have failed")
+		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
+		assert.Len(t, result.Steps, 1)
 	})
 }
 
@@ -107,6 +126,7 @@ func TestRunDirs(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Len(t, result.Steps, 1)
 	})
 }
 
@@ -127,6 +147,7 @@ func TestRunErrors(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
+		assert.Contains(t, result.ErrorMessage, "255")
 	})
 
 	t.Run("Run k6 with invalid arguments", func(t *testing.T) {
@@ -144,6 +165,7 @@ func TestRunErrors(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
+		assert.Contains(t, result.ErrorMessage, "255")
 	})
 
 	t.Run("Run k6 from directory with missing script arg", func(t *testing.T) {
@@ -169,6 +191,7 @@ func TestRunErrors(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
+		assert.Contains(t, result.ErrorMessage, "not found")
 	})
 }
 
@@ -193,4 +216,16 @@ func TestParse(t *testing.T) {
 		status := parseScenarioStatus(string(summary))
 		assert.Equal(t, "success", status)
 	})
+}
+
+func writeTestContent(t *testing.T, dir string, testScript string) {
+	k6Script, err := ioutil.ReadFile(testScript)
+	if err != nil {
+		assert.FailNow(t, "Unable to read k6 test script")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(dir, "test-content"), k6Script, 0644)
+	if err != nil {
+		assert.FailNow(t, "Unable to write k6 runner test content file")
+	}
 }
