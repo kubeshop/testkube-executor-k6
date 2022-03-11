@@ -96,42 +96,48 @@ func finalExecutionResult(output []byte, err error) (result testkube.ExecutionRe
 	result.Output = string(output)
 	result.OutputType = "text/plain"
 
-	result.Steps = []testkube.ExecutionStepResult{
-		{
-			// use the scenario name and description here
-			Name:     parseScenarioName(string(output)),
-			Duration: parseScenarioDuration(string(output)),
-			Status:   parseScenarioStatus(string(output)),
-		},
+	result.Steps = []testkube.ExecutionStepResult{}
+	for _, name := range parseScenarioNames(string(output)) {
+		result.Steps = append(result.Steps, testkube.ExecutionStepResult{
+			// use the scenario name with description here
+			Name:     name,
+			Duration: parseScenarioDuration(string(output), splitScenarioName(name)),
+
+			// currently there is no way to extract individual scenario status
+			Status: string(testkube.SUCCESS_ExecutionStatus),
+		})
 	}
 
 	return result
 }
 
-func parseScenarioName(summary string) string {
+func parseScenarioNames(summary string) []string {
 	lines := splitSummaryBody(summary)
-	var name string
+	names := []string{}
 
-	for i, line := range lines {
-		if strings.Contains(line, "scenario") {
-			// take next line and trim leading spaces
-			name = strings.TrimSpace(lines[i+1])
-			break
+	for _, line := range lines {
+		if strings.Contains(line, "* ") {
+			name := strings.TrimLeft(strings.TrimSpace(line), "* ")
+			names = append(names, name)
 		}
 	}
 
-	return name
+	return names
 }
 
-func parseScenarioDuration(summary string) string {
+func parseScenarioDuration(summary string, name string) string {
 	lines := splitSummaryBody(summary)
-	var duration string
 
-	for i, line := range lines {
-		if strings.Contains(line, "running") {
+	var duration string
+	for _, line := range lines {
+		if strings.Contains(line, name) && strings.Contains(line, "[ 100% ]") {
+			index := strings.Index(line, "]") + 1
+			line = strings.TrimSpace(line[index:])
+			line = strings.ReplaceAll(line, "  ", " ")
+
 			// take next line and trim leading spaces
-			metrics := strings.Split(lines[i+1], " ")
-			duration = metrics[6]
+			metrics := strings.Split(line, " ")
+			duration = metrics[2]
 			break
 		}
 	}
@@ -139,8 +145,8 @@ func parseScenarioDuration(summary string) string {
 	return duration
 }
 
-func parseScenarioStatus(summary string) string {
-	return string(testkube.SUCCESS_ExecutionStatus)
+func splitScenarioName(name string) string {
+	return strings.Split(name, ":")[0]
 }
 
 func splitSummaryBody(summary string) []string {

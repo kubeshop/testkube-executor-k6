@@ -71,6 +71,22 @@ func TestRunAdvanced(t *testing.T) {
 	tempDir := os.TempDir()
 	os.Setenv("RUNNER_DATADIR", tempDir)
 
+	t.Run("Run k6 with scenarios", func(t *testing.T) {
+		// given
+		runner := NewRunner()
+		execution := testkube.NewQueuedExecution()
+		execution.Content = testkube.NewStringTestContent("")
+		writeTestContent(t, tempDir, "../../examples/k6-test-scenarios.js")
+
+		// when
+		result, err := runner.Run(*execution)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Len(t, result.Steps, 2)
+	})
+
 	t.Run("Run k6 with checks and thresholds", func(t *testing.T) {
 		// given
 		runner := NewRunner()
@@ -195,26 +211,80 @@ func TestRunErrors(t *testing.T) {
 	})
 }
 
+func TestExecutionResult(t *testing.T) {
+	t.Run("Get default k6 execution result", func(t *testing.T) {
+		// setup
+		summary, err := ioutil.ReadFile("../../examples/k6-test-summary.txt")
+		if err != nil {
+			assert.FailNow(t, "Unable to read k6 test summary")
+		}
+
+		result := finalExecutionResult(summary, nil)
+		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Len(t, result.Steps, 1)
+	})
+
+	t.Run("Get custom scenario k6 execution result", func(t *testing.T) {
+		// setup
+		summary, err := ioutil.ReadFile("../../examples/k6-test-scenarios.txt")
+		if err != nil {
+			assert.FailNow(t, "Unable to read k6 test summary")
+		}
+
+		result := finalExecutionResult(summary, nil)
+		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Len(t, result.Steps, 2)
+	})
+}
+
 func TestParse(t *testing.T) {
-	// setup
-	summary, err := ioutil.ReadFile("../../examples/k6-test-summary.txt")
-	if err != nil {
-		assert.FailNow(t, "Unable to read k6 test summary")
-	}
-
-	t.Run("Parse Scenario Name", func(t *testing.T) {
-		name := parseScenarioName(string(summary))
-		assert.Equal(t, "* default: 1 iterations for each of 1 VUs (maxDuration: 10m0s, gracefulStop: 30s)", name)
+	t.Run("Split scenario name", func(t *testing.T) {
+		name := splitScenarioName("default: 1 iterations for each of 1 VUs (maxDuration: 10m0s, gracefulStop: 30s)")
+		assert.Equal(t, "default", name)
 	})
 
-	t.Run("Parse Scenario Duration", func(t *testing.T) {
-		duration := parseScenarioDuration(string(summary))
-		assert.Equal(t, "00m01.1s/10m0s", duration)
+	t.Run("Parse k6 default summary", func(t *testing.T) {
+		// setup
+		summary, err := ioutil.ReadFile("../../examples/k6-test-summary.txt")
+		if err != nil {
+			assert.FailNow(t, "Unable to read k6 test summary")
+		}
+
+		t.Run("Parse scenario names", func(t *testing.T) {
+			names := parseScenarioNames(string(summary))
+			assert.Len(t, names, 1)
+			assert.Equal(t, "default: 1 iterations for each of 1 VUs (maxDuration: 10m0s, gracefulStop: 30s)", names[0])
+		})
+
+		t.Run("Parse default scenario duration", func(t *testing.T) {
+			duration := parseScenarioDuration(string(summary), "default")
+			assert.Equal(t, "00m01.0s/10m0s", duration)
+		})
 	})
 
-	t.Run("Parse Scenario Status", func(t *testing.T) {
-		status := parseScenarioStatus(string(summary))
-		assert.Equal(t, "success", status)
+	t.Run("Parse k6 scenario summary", func(t *testing.T) {
+		// setup
+		summary, err := ioutil.ReadFile("../../examples/k6-test-scenarios.txt")
+		if err != nil {
+			assert.FailNow(t, "Unable to read k6 test summary")
+		}
+
+		t.Run("Parse scenario names", func(t *testing.T) {
+			names := parseScenarioNames(string(summary))
+			assert.Len(t, names, 2)
+			assert.Equal(t, "testkube: 5 looping VUs for 10s (exec: testkube, gracefulStop: 30s)", names[0])
+			assert.Equal(t, "monokle: 10 iterations for each of 5 VUs (maxDuration: 1m0s, exec: monokle, startTime: 5s, gracefulStop: 30s)", names[1])
+		})
+
+		t.Run("Parse teskube scenario duration", func(t *testing.T) {
+			duration := parseScenarioDuration(string(summary), "testkube")
+			assert.Equal(t, "10.0s/10s", duration)
+		})
+
+		t.Run("Parse monokle scenario duration", func(t *testing.T) {
+			duration := parseScenarioDuration(string(summary), "monokle")
+			assert.Equal(t, "0m10.2s/1m0s", duration)
+		})
 	})
 }
 
