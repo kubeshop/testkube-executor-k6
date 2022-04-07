@@ -79,9 +79,9 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 func finalExecutionResult(output []byte, err error) (result testkube.ExecutionResult) {
 	if err == nil {
-		result.Status = testkube.ExecutionStatusSuccess
+		result.Status = testkube.ExecutionStatusPassed
 	} else {
-		result.Status = testkube.ExecutionStatusError
+		result.Status = testkube.ExecutionStatusFailed
 		result.ErrorMessage = err.Error()
 		if strings.Contains(result.ErrorMessage, "exit status 99") {
 			// tests have run, but some checks + thresholds have failed
@@ -104,7 +104,7 @@ func finalExecutionResult(output []byte, err error) (result testkube.ExecutionRe
 			Duration: parseScenarioDuration(string(output), splitScenarioName(name)),
 
 			// currently there is no way to extract individual scenario status
-			Status: string(testkube.SUCCESS_ExecutionStatus),
+			Status: string(testkube.PASSED_ExecutionStatus),
 		})
 	}
 

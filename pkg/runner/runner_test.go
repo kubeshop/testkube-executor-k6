@@ -27,7 +27,7 @@ func TestRunFiles(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 1)
 	})
 
@@ -44,7 +44,7 @@ func TestRunFiles(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 1)
 	})
 
@@ -61,7 +61,7 @@ func TestRunFiles(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 1)
 	})
 }
@@ -83,7 +83,7 @@ func TestRunAdvanced(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 2)
 	})
 
@@ -100,7 +100,7 @@ func TestRunAdvanced(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, result.ErrorMessage, "some thresholds have failed")
-		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
+		assert.Equal(t, testkube.ExecutionStatusFailed, result.Status)
 		assert.Len(t, result.Steps, 1)
 	})
 }
@@ -141,7 +141,7 @@ func TestRunDirs(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 1)
 	})
 }
@@ -162,7 +162,7 @@ func TestRunErrors(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
+		assert.Equal(t, testkube.ExecutionStatusFailed, result.Status)
 		assert.Contains(t, result.ErrorMessage, "255")
 	})
 
@@ -180,7 +180,7 @@ func TestRunErrors(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
+		assert.Equal(t, testkube.ExecutionStatusFailed, result.Status)
 		assert.Contains(t, result.ErrorMessage, "255")
 	})
 
@@ -206,7 +206,7 @@ func TestRunErrors(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusError)
+		assert.Equal(t, testkube.ExecutionStatusFailed, result.Status)
 		assert.Contains(t, result.ErrorMessage, "not found")
 	})
 }
@@ -220,7 +220,7 @@ func TestExecutionResult(t *testing.T) {
 		}
 
 		result := finalExecutionResult(summary, nil)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 1)
 	})
 
@@ -232,7 +232,7 @@ func TestExecutionResult(t *testing.T) {
 		}
 
 		result := finalExecutionResult(summary, nil)
-		assert.Equal(t, result.Status, testkube.ExecutionStatusSuccess)
+		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 2)
 	})
 }
