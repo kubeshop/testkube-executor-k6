@@ -32,6 +32,10 @@ type K6Runner struct {
 	Params Params
 }
 
+const K6_CLOUD = "cloud"
+const K6_RUN = "run"
+const K6_SCRIPT = "script"
+
 func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionResult, err error) {
 	// check that the datadir exists
 	_, err = os.Stat(r.Params.Datadir)
@@ -39,7 +43,16 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		return result, err
 	}
 
-	args := []string{"run"}
+	args := []string{}
+
+	k6Subtype := strings.Split(execution.TestType, "/")[1]
+	if k6Subtype == K6_SCRIPT || k6Subtype == K6_RUN {
+		args = append(args, K6_RUN)
+	} else if k6Subtype == K6_CLOUD {
+		args = append(args, K6_CLOUD)
+	} else {
+		return result.Err(fmt.Errorf("unsupported test type %s", execution.TestType)), nil
+	}
 
 	// convert executor env variables to k6 env variables
 	for key, value := range execution.Envs {

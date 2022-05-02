@@ -20,6 +20,7 @@ func TestRunFiles(t *testing.T) {
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/script"
 		writeTestContent(t, tempDir, "../../examples/k6-test-script.js")
 
 		// when
@@ -36,6 +37,7 @@ func TestRunFiles(t *testing.T) {
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/run"
 		execution.Args = []string{"--vus", "2", "--duration", "1s"}
 		writeTestContent(t, tempDir, "../../examples/k6-test-script.js")
 
@@ -53,6 +55,7 @@ func TestRunFiles(t *testing.T) {
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/script"
 		execution.Envs = map[string]string{"TARGET_HOSTNAME": "kubeshop.github.io"}
 		writeTestContent(t, tempDir, "../../examples/k6-test-environment.js")
 
@@ -76,6 +79,7 @@ func TestRunAdvanced(t *testing.T) {
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/run"
 		writeTestContent(t, tempDir, "../../examples/k6-test-scenarios.js")
 
 		// when
@@ -92,6 +96,7 @@ func TestRunAdvanced(t *testing.T) {
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/script"
 		writeTestContent(t, tempDir, "../../examples/k6-test-thresholds.js")
 
 		// when
@@ -134,6 +139,7 @@ func TestRunDirs(t *testing.T) {
 				Branch: "main",
 			},
 		}
+		execution.TestType = "k6/script"
 		execution.Args = []string{"--duration", "1s", "k6-test-script.js"}
 
 		// when
@@ -156,6 +162,7 @@ func TestRunErrors(t *testing.T) {
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/script"
 
 		// when
 		result, err := runner.Run(*execution)
@@ -166,6 +173,25 @@ func TestRunErrors(t *testing.T) {
 		assert.Contains(t, result.ErrorMessage, "255")
 	})
 
+	t.Run("Run k6 with invalid test type script", func(t *testing.T) {
+		// setup
+		os.Setenv("RUNNER_DATADIR", ".")
+
+		// given
+		runner := NewRunner()
+		execution := testkube.NewQueuedExecution()
+		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/unknown"
+
+		// when
+		result, err := runner.Run(*execution)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, testkube.ExecutionStatusFailed, result.Status)
+		assert.Contains(t, result.ErrorMessage, "unsupported test type k6/unknown")
+	})
+
 	t.Run("Run k6 with invalid arguments", func(t *testing.T) {
 		// setup
 		os.Setenv("RUNNER_DATADIR", ".")
@@ -173,6 +199,7 @@ func TestRunErrors(t *testing.T) {
 		runner := NewRunner()
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/script"
 		execution.Args = []string{"--vues", "2", "--duration", "5"}
 
 		// when
@@ -199,6 +226,7 @@ func TestRunErrors(t *testing.T) {
 				Path:   "examples",
 			},
 		}
+		execution.TestType = "k6/script"
 		execution.Args = []string{}
 
 		// when
