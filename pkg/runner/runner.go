@@ -56,8 +56,14 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	// convert executor env variables to k6 env variables
 	for key, value := range execution.Envs {
-		env_var := fmt.Sprintf("%s=%s", key, value)
-		args = append(args, "-e", env_var)
+		if key == "K6_CLOUD_TOKEN" {
+			// set as OS environment variable
+			os.Setenv(key, value)
+		} else {
+			// pass to k6 using -e option
+			env_var := fmt.Sprintf("%s=%s", key, value)
+			args = append(args, "-e", env_var)
+		}
 	}
 
 	// pass additional executor arguments/flags to k6
