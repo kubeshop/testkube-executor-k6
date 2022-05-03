@@ -38,6 +38,9 @@ kubectl testkube run test --watch k6-test-script
 kubectl testkube create test --git-uri https://github.com/kubeshop/testkube-executor-k6.git --git-branch main --git-path examples --type "k6/script" --name k6-test-script-git
 kubectl testkube run test --args examples/k6-test-script.js --watch k6-test-script-git
 
+# for local k6 execution use k6/run or k6/script (deprecated)
+kubectl testkube create test --file examples/k6-test-script.js --type "k6/run" --name k6-local-test
+
 # you can also run test scripts using k6 cloud
 # you need to pass the API token as test param
 kubectl testkube create test --file examples/k6-test-script.js --type "k6/cloud" --name k6-cloud-test
