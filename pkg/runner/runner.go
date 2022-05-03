@@ -45,7 +45,12 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	args := []string{}
 
-	k6Subtype := strings.Split(execution.TestType, "/")[1]
+	k6TestType := strings.Split(execution.TestType, "/")
+	if len(k6TestType) != 2 {
+		return result.Err(fmt.Errorf("invalid test type %s", execution.TestType)), nil
+	}
+
+	k6Subtype := k6TestType[1]
 	if k6Subtype == K6_SCRIPT || k6Subtype == K6_RUN {
 		args = append(args, K6_RUN)
 	} else if k6Subtype == K6_CLOUD {
