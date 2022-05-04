@@ -66,8 +66,8 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 			os.Setenv(key, value)
 		} else {
 			// pass to k6 using -e option
-			env_var := fmt.Sprintf("%s=%s", key, value)
-			args = append(args, "-e", env_var)
+			env := fmt.Sprintf("%s=%s", key, value)
+			args = append(args, "-e", env)
 		}
 	}
 
