@@ -32,6 +32,10 @@ type K6Runner struct {
 	Params Params
 }
 
+const K6_CLOUD = "cloud"
+const K6_RUN = "run"
+const K6_SCRIPT = "script"
+
 func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionResult, err error) {
 	// check that the datadir exists
 	_, err = os.Stat(r.Params.Datadir)
@@ -39,12 +43,32 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		return result, err
 	}
 
-	args := []string{"run"}
+	args := []string{}
+
+	k6TestType := strings.Split(execution.TestType, "/")
+	if len(k6TestType) != 2 {
+		return result.Err(fmt.Errorf("invalid test type %s", execution.TestType)), nil
+	}
+
+	k6Subtype := k6TestType[1]
+	if k6Subtype == K6_SCRIPT || k6Subtype == K6_RUN {
+		args = append(args, K6_RUN)
+	} else if k6Subtype == K6_CLOUD {
+		args = append(args, K6_CLOUD)
+	} else {
+		return result.Err(fmt.Errorf("unsupported test type %s", execution.TestType)), nil
+	}
 
 	// convert executor env variables to k6 env variables
 	for key, value := range execution.Envs {
-		env_var := fmt.Sprintf("%s=%s", key, value)
-		args = append(args, "-e", env_var)
+		if key == "K6_CLOUD_TOKEN" {
+			// set as OS environment variable
+			os.Setenv(key, value)
+		} else {
+			// pass to k6 using -e option
+			env := fmt.Sprintf("%s=%s", key, value)
+			args = append(args, "-e", env)
+		}
 	}
 
 	// pass additional executor arguments/flags to k6
@@ -65,10 +89,10 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		directory = filepath.Join(r.Params.Datadir, "repo")
 
 		// sanity checking for test script
-		script_file := filepath.Join(directory, args[len(args)-1])
-		file_info, err := os.Stat(script_file)
-		if errors.Is(err, os.ErrNotExist) || file_info.IsDir() {
-			return result.Err(fmt.Errorf("k6 test script %s not found", script_file)), nil
+		scriptFile := filepath.Join(directory, args[len(args)-1])
+		fileInfo, err := os.Stat(scriptFile)
+		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
+			return result.Err(fmt.Errorf("k6 test script %s not found", scriptFile)), nil
 		}
 	}
 

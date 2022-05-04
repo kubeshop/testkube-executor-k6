@@ -10,3 +10,5 @@ spec:
   # image: lreimer/testkube-k6-executor:latest
   types:
   - k6/script
+  - k6/run
+  - k6/cloud
