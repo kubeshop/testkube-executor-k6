@@ -42,9 +42,8 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	args := []string{"run"}
 
 	// convert executor env variables to k6 env variables
-	for key, value := range execution.Envs {
-		env_var := fmt.Sprintf("%s=%s", key, value)
-		args = append(args, "-e", env_var)
+	for _, v := range execution.Variables {
+		args = append(args, "-e", fmt.Sprintf("%s=%s", v.Name, v.Value))
 	}
 
 	// pass additional executor arguments/flags to k6
@@ -65,10 +64,10 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		directory = filepath.Join(r.Params.Datadir, "repo")
 
 		// sanity checking for test script
-		script_file := filepath.Join(directory, args[len(args)-1])
-		file_info, err := os.Stat(script_file)
-		if errors.Is(err, os.ErrNotExist) || file_info.IsDir() {
-			return result.Err(fmt.Errorf("k6 test script %s not found", script_file)), nil
+		scriptFile := filepath.Join(directory, args[len(args)-1])
+		fileInfo, err := os.Stat(scriptFile)
+		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
+			return result.Err(fmt.Errorf("k6 test script %s not found", scriptFile)), nil
 		}
 	}
 
