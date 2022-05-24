@@ -2,7 +2,7 @@ name: Docker images building and pushing
 on:
   push:
     branches:
-      - add_docker-build-to-stage
+      - main
 
 jobs:
   docker:
