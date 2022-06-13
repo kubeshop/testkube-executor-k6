@@ -32,6 +32,23 @@ func TestRunFiles(t *testing.T) {
 		assert.Len(t, result.Steps, 1)
 	})
 
+	t.Run("Run k6 with simple failing script", func(t *testing.T) {
+		// given
+		runner := NewRunner()
+		execution := testkube.NewQueuedExecution()
+		execution.Content = testkube.NewStringTestContent("")
+		execution.TestType = "k6/script"
+		writeTestContent(t, tempDir, "../../examples/k6-test-failing-script.js")
+
+		// when
+		result, err := runner.Run(*execution)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, testkube.ExecutionStatusFailed, result.Status)
+		assert.Len(t, result.Steps, 1)
+	})
+
 	t.Run("Run k6 with arguments and simple script", func(t *testing.T) {
 		// given
 		runner := NewRunner()
@@ -104,7 +121,7 @@ func TestRunAdvanced(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, result.ErrorMessage, "some thresholds have failed")
+		assert.Equal(t, "some thresholds have failed", result.ErrorMessage)
 		assert.Equal(t, testkube.ExecutionStatusFailed, result.Status)
 		assert.Len(t, result.Steps, 1)
 	})
@@ -247,7 +264,7 @@ func TestExecutionResult(t *testing.T) {
 			assert.FailNow(t, "Unable to read k6 test summary")
 		}
 
-		result := finalExecutionResult(summary, nil)
+		result := finalExecutionResult(string(summary), nil)
 		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 1)
 	})
@@ -259,7 +276,7 @@ func TestExecutionResult(t *testing.T) {
 			assert.FailNow(t, "Unable to read k6 test summary")
 		}
 
-		result := finalExecutionResult(summary, nil)
+		result := finalExecutionResult(string(summary), nil)
 		assert.Equal(t, testkube.ExecutionStatusPassed, result.Status)
 		assert.Len(t, result.Steps, 2)
 	})
