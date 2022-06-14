@@ -98,34 +98,38 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	output.PrintEvent("Running", directory, "k6", args)
 	output, err := executor.Run(directory, "k6", args...)
-	return finalExecutionResult(output, err), nil
+	return finalExecutionResult(string(output), err), nil
 }
 
-func finalExecutionResult(output []byte, err error) (result testkube.ExecutionResult) {
-	if err == nil {
+// finalExecutionResult processes the output of the test run
+func finalExecutionResult(output string, err error) (result testkube.ExecutionResult) {
+	switch {
+	case err == nil && areChecksSuccessful(output):
 		result.Status = testkube.ExecutionStatusPassed
-	} else {
+	case err == nil && !areChecksSuccessful(output):
+		result.Status = testkube.ExecutionStatusFailed
+		result.ErrorMessage = "some checks have failed"
+	case err != nil && strings.Contains(err.Error(), "exit status 99"):
+		// tests have run, but some checks + thresholds have failed
+		result.Status = testkube.ExecutionStatusFailed
+		result.ErrorMessage = "some thresholds have failed"
+	default:
+		// k6 was unable to run at all
 		result.Status = testkube.ExecutionStatusFailed
 		result.ErrorMessage = err.Error()
-		if strings.Contains(result.ErrorMessage, "exit status 99") {
-			// tests have run, but some checks + thresholds have failed
-			result.ErrorMessage = "some thresholds have failed"
-		} else {
-			// k6 was unable to run at all
-			return result
-		}
+		return result
 	}
 
 	// always set these, no matter if error or success
-	result.Output = string(output)
+	result.Output = output
 	result.OutputType = "text/plain"
 
 	result.Steps = []testkube.ExecutionStepResult{}
-	for _, name := range parseScenarioNames(string(output)) {
+	for _, name := range parseScenarioNames(output) {
 		result.Steps = append(result.Steps, testkube.ExecutionStepResult{
 			// use the scenario name with description here
 			Name:     name,
-			Duration: parseScenarioDuration(string(output), splitScenarioName(name)),
+			Duration: parseScenarioDuration(output, splitScenarioName(name)),
 
 			// currently there is no way to extract individual scenario status
 			Status: string(testkube.PASSED_ExecutionStatus),
@@ -133,6 +137,23 @@ func finalExecutionResult(output []byte, err error) (result testkube.ExecutionRe
 	}
 
 	return result
+}
+
+// areChecksSuccessful verifies the summary at the end of the execution to see if any of the checks failed
+func areChecksSuccessful(summary string) bool {
+	lines := splitSummaryBody(summary)
+
+	for _, line := range lines {
+		if !strings.Contains(line, "checks") {
+			continue
+		}
+		if strings.Contains(line, "100.00%") {
+			return true
+		}
+		return false
+	}
+
+	return true
 }
 
 func parseScenarioNames(summary string) []string {
