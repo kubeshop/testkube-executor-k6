@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -135,12 +134,12 @@ func TestRunDirs(t *testing.T) {
 	repoDir := filepath.Join(tempDir, "repo")
 	os.Mkdir(repoDir, 0755)
 
-	k6Script, err := ioutil.ReadFile("../../examples/k6-test-script.js")
+	k6Script, err := os.ReadFile("../../examples/k6-test-script.js")
 	if err != nil {
 		assert.FailNow(t, "Unable to read k6 test script")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(repoDir, "k6-test-script.js"), k6Script, 0644)
+	err = os.WriteFile(filepath.Join(repoDir, "k6-test-script.js"), k6Script, 0644)
 	if err != nil {
 		assert.FailNow(t, "Unable to write k6 runner test content file")
 	}
@@ -259,7 +258,7 @@ func TestRunErrors(t *testing.T) {
 func TestExecutionResult(t *testing.T) {
 	t.Run("Get default k6 execution result", func(t *testing.T) {
 		// setup
-		summary, err := ioutil.ReadFile("../../examples/k6-test-summary.txt")
+		summary, err := os.ReadFile("../../examples/k6-test-summary.txt")
 		if err != nil {
 			assert.FailNow(t, "Unable to read k6 test summary")
 		}
@@ -271,7 +270,7 @@ func TestExecutionResult(t *testing.T) {
 
 	t.Run("Get custom scenario k6 execution result", func(t *testing.T) {
 		// setup
-		summary, err := ioutil.ReadFile("../../examples/k6-test-scenarios.txt")
+		summary, err := os.ReadFile("../../examples/k6-test-scenarios.txt")
 		if err != nil {
 			assert.FailNow(t, "Unable to read k6 test summary")
 		}
@@ -290,7 +289,7 @@ func TestParse(t *testing.T) {
 
 	t.Run("Parse k6 default summary", func(t *testing.T) {
 		// setup
-		summary, err := ioutil.ReadFile("../../examples/k6-test-summary.txt")
+		summary, err := os.ReadFile("../../examples/k6-test-summary.txt")
 		if err != nil {
 			assert.FailNow(t, "Unable to read k6 test summary")
 		}
@@ -309,7 +308,7 @@ func TestParse(t *testing.T) {
 
 	t.Run("Parse k6 scenario summary", func(t *testing.T) {
 		// setup
-		summary, err := ioutil.ReadFile("../../examples/k6-test-scenarios.txt")
+		summary, err := os.ReadFile("../../examples/k6-test-scenarios.txt")
 		if err != nil {
 			assert.FailNow(t, "Unable to read k6 test summary")
 		}
@@ -334,12 +333,12 @@ func TestParse(t *testing.T) {
 }
 
 func writeTestContent(t *testing.T, dir string, testScript string) {
-	k6Script, err := ioutil.ReadFile(testScript)
+	k6Script, err := os.ReadFile(testScript)
 	if err != nil {
 		assert.FailNow(t, "Unable to read k6 test script")
 	}
 
-	err = ioutil.WriteFile(filepath.Join(dir, "test-content"), k6Script, 0644)
+	err = os.WriteFile(filepath.Join(dir, "test-content"), k6Script, 0644)
 	if err != nil {
 		assert.FailNow(t, "Unable to write k6 runner test content file")
 	}
