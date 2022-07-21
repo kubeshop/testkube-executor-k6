@@ -51,12 +51,10 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	}
 
 	k6Subtype := k6TestType[1]
-	if k6Subtype == K6_SCRIPT || k6Subtype == K6_RUN {
-		args = append(args, K6_RUN)
-	} else if k6Subtype == K6_CLOUD {
+	if k6Subtype == K6_CLOUD {
 		args = append(args, K6_CLOUD)
 	} else {
-		return result.Err(fmt.Errorf("unsupported test type %s", execution.TestType)), nil
+		args = append(args, K6_RUN)
 	}
 
 	// convert executor env variables to k6 env variables
