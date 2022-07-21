@@ -189,25 +189,6 @@ func TestRunErrors(t *testing.T) {
 		assert.Contains(t, result.ErrorMessage, "255")
 	})
 
-	t.Run("Run k6 with invalid test type script", func(t *testing.T) {
-		// setup
-		os.Setenv("RUNNER_DATADIR", ".")
-
-		// given
-		runner := NewRunner()
-		execution := testkube.NewQueuedExecution()
-		execution.Content = testkube.NewStringTestContent("")
-		execution.TestType = "k6/unknown"
-
-		// when
-		result, err := runner.Run(*execution)
-
-		// then
-		assert.NoError(t, err)
-		assert.Equal(t, testkube.ExecutionStatusFailed, result.Status)
-		assert.Contains(t, result.ErrorMessage, "unsupported test type k6/unknown")
-	})
-
 	t.Run("Run k6 with invalid arguments", func(t *testing.T) {
 		// setup
 		os.Setenv("RUNNER_DATADIR", ".")
