@@ -16,4 +16,7 @@ FROM loadimpact/k6:0.36.0
 WORKDIR /home/k6
 COPY --from=builder /go/k6 /usr/bin/k6
 COPY --from=builder /build/runner /bin/runner
+
+USER 1001
+
 ENTRYPOINT ["/bin/runner"]
