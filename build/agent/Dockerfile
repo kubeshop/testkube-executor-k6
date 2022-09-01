@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.17 as builder
+FROM golang:1.18 as builder
 
 # build k6 0.36.0 with prometheus support
 ENV K6_VERSION=v0.36.0

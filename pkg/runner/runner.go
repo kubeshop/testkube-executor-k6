@@ -10,6 +10,7 @@ import (
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
 	"github.com/kubeshop/testkube/pkg/executor/output"
+	"github.com/kubeshop/testkube/pkg/executor/secret"
 )
 
 type Params struct {
@@ -55,6 +56,18 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		args = append(args, K6_CLOUD)
 	} else {
 		args = append(args, K6_RUN)
+	}
+
+	secret.NewEnvManager().GetVars(execution.Variables)
+	for _, variable := range execution.Variables {
+		if variable.Name == "K6_CLOUD_TOKEN" {
+			// set as OS environment variable
+			os.Setenv(variable.Name, variable.Value)
+		} else {
+			// pass to k6 using -e option
+			env := fmt.Sprintf("%s=%s", variable.Name, variable.Value)
+			args = append(args, "-e", env)
+		}
 	}
 
 	// convert executor env variables to k6 env variables
