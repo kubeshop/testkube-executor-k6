@@ -101,10 +101,11 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 // finalExecutionResult processes the output of the test run
 func finalExecutionResult(output string, err error) (result testkube.ExecutionResult) {
+	succeeded := isSuccessful(output)
 	switch {
-	case err == nil && areChecksSuccessful(output):
+	case err == nil && succeeded:
 		result.Status = testkube.ExecutionStatusPassed
-	case err == nil && !areChecksSuccessful(output):
+	case err == nil && !succeeded:
 		result.Status = testkube.ExecutionStatusFailed
 		result.ErrorMessage = "some checks have failed"
 	case err != nil && strings.Contains(err.Error(), "exit status 99"):
@@ -137,10 +138,15 @@ func finalExecutionResult(output string, err error) (result testkube.ExecutionRe
 	return result
 }
 
-// areChecksSuccessful verifies the summary at the end of the execution to see if any of the checks failed
+// isSuccessful checks the output of the k6 test to make sure nothing fails
+func isSuccessful(summary string) bool {
+	return areChecksSuccessful(summary) && !containsErrors(summary)
+}
+
+// areChecksSuccessful verifies the summary at the end of the execution to see
+// if any of the checks failed
 func areChecksSuccessful(summary string) bool {
 	lines := splitSummaryBody(summary)
-
 	for _, line := range lines {
 		if !strings.Contains(line, "checks") {
 			continue
@@ -152,6 +158,14 @@ func areChecksSuccessful(summary string) bool {
 	}
 
 	return true
+}
+
+// containsErrors checks for error level messages.
+// As discussed in this GitHub issue: https://github.com/grafana/k6/issues/1680,
+// k6 summary does not include tests failing because an error was encountered.
+// To make sure no errors happened, we check the output for error level messages
+func containsErrors(summary string) bool {
+	return strings.Contains(summary, "level=error")
 }
 
 func parseScenarioNames(summary string) []string {
