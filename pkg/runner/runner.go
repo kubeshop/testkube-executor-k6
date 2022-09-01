@@ -140,8 +140,7 @@ func finalExecutionResult(output string, err error) (result testkube.ExecutionRe
 
 // isSuccessful checks the output of the k6 test to make sure nothing fails
 func isSuccessful(summary string) bool {
-	return areChecksSuccessful(summary) && areRequestsSuccessful(summary) &&
-		!containsErrors(summary)
+	return areChecksSuccessful(summary) && !containsErrors(summary)
 }
 
 // areChecksSuccessful verifies the summary at the end of the execution to see
@@ -150,23 +149,6 @@ func areChecksSuccessful(summary string) bool {
 	lines := splitSummaryBody(summary)
 	for _, line := range lines {
 		if !strings.Contains(line, "checks") {
-			continue
-		}
-		if strings.Contains(line, "100.00%") {
-			return true
-		}
-		return false
-	}
-
-	return true
-}
-
-// areRequestsSuccessful verifies the summary at the end of the execution to see
-// if any of the http requests or thresholds failed
-func areRequestsSuccessful(summary string) bool {
-	lines := splitSummaryBody(summary)
-	for _, line := range lines {
-		if !strings.Contains(line, "http_req_failed") {
 			continue
 		}
 		if strings.Contains(line, "100.00%") {
