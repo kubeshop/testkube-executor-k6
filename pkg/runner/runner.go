@@ -59,7 +59,8 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		args = append(args, K6_RUN)
 	}
 
-	secret.NewEnvManager().GetVars(execution.Variables)
+	envManager := secret.NewEnvManagerWithVars(execution.Variables)
+	envManager.GetVars(execution.Variables)
 	for _, variable := range execution.Variables {
 		if variable.Name == "K6_CLOUD_TOKEN" {
 			// set as OS environment variable
@@ -115,7 +116,8 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	}
 
 	output.PrintEvent("Running", directory, "k6", args)
-	output, err := executor.Run(directory, "k6", args...)
+	output, err := executor.Run(directory, "k6", envManager, args...)
+	output = envManager.Obfuscate(output)
 	return finalExecutionResult(string(output), err), nil
 }
 
