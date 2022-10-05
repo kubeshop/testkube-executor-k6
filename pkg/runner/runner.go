@@ -98,8 +98,15 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	// in case of a test file execution we will pass the
 	// file path as final parameter to k6
 	if execution.Content.IsFile() {
-		args = append(args, "test-content")
 		directory = r.Params.Datadir
+		if testkube.TestContentType(execution.Content.Type_) != testkube.TestContentTypeGitFile {
+			args = append(args, "test-content")
+		} else {
+			directory = filepath.Join(directory, "repo")
+			if execution.Content != nil && execution.Content.Repository != nil {
+				args = append(args, execution.Content.Repository.Path)
+			}
+		}
 	}
 
 	// in case of Git directory we will run k6 here and
