@@ -9,7 +9,6 @@ import (
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
-	"github.com/kubeshop/testkube/pkg/executor/content"
 	"github.com/kubeshop/testkube/pkg/executor/output"
 	"github.com/kubeshop/testkube/pkg/executor/secret"
 )
@@ -86,12 +85,6 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	// pass additional executor arguments/flags to k6
 	args = append(args, execution.Args...)
-
-	// add configuration files
-	err = content.PlaceFiles(execution.CopyFiles)
-	if err != nil {
-		return result.Err(fmt.Errorf("could not place config files: %w", err)), nil
-	}
 
 	var directory string
 
