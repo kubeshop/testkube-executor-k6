@@ -116,7 +116,13 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	}
 
 	output.PrintEvent("Running", directory, "k6", args)
-	output, err := executor.Run(directory, "k6", envManager, args...)
+	runPath := directory
+	if execution.Content.Repository != nil && execution.Content.Repository.WorkingDir != "" {
+		runPath = filepath.Join(directory, execution.Content.Repository.WorkingDir)
+		args[len(args)-1] = filepath.Join(directory, args[len(args)-1])
+	}
+
+	output, err := executor.Run(runPath, "k6", envManager, args...)
 	output = envManager.Obfuscate(output)
 	return finalExecutionResult(string(output), err), nil
 }
