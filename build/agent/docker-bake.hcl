@@ -7,5 +7,6 @@ target "build" {
   dockerfile = "build/agent/Dockerfile"
   platforms = [
     "linux/amd64",
+    "linux/arm64",
   ]
 }
