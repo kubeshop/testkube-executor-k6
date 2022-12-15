@@ -10,6 +10,7 @@ import (
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
 	"github.com/kubeshop/testkube/pkg/executor/output"
+	"github.com/kubeshop/testkube/pkg/executor/runner"
 	"github.com/kubeshop/testkube/pkg/executor/secret"
 )
 
@@ -236,4 +237,9 @@ func splitScenarioName(name string) string {
 
 func splitSummaryBody(summary string) []string {
 	return strings.Split(summary, "\n")
+}
+
+// GetType returns runner type
+func (r *K6Runner) GetType() runner.Type {
+	return runner.TypeMain
 }
