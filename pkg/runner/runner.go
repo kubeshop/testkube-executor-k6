@@ -60,8 +60,8 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	}
 
 	envManager := secret.NewEnvManagerWithVars(execution.Variables)
-	envManager.GetVars(execution.Variables)
-	for _, variable := range execution.Variables {
+	envManager.GetVars(envManager.Variables)
+	for _, variable := range envManager.Variables {
 		if variable.Name == "K6_CLOUD_TOKEN" {
 			// set as OS environment variable
 			os.Setenv(variable.Name, variable.Value)
