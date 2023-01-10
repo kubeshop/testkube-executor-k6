@@ -9,9 +9,10 @@ import (
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
-	"github.com/kubeshop/testkube/pkg/executor/output"
+	outputPkg "github.com/kubeshop/testkube/pkg/executor/output"
 	"github.com/kubeshop/testkube/pkg/executor/runner"
 	"github.com/kubeshop/testkube/pkg/executor/secret"
+	"github.com/kubeshop/testkube/pkg/ui"
 )
 
 type Params struct {
@@ -19,9 +20,14 @@ type Params struct {
 }
 
 func NewRunner() *K6Runner {
+	outputPkg.PrintLog(fmt.Sprintf("%s Preparing test runner", ui.IconTruck))
+
+	outputPkg.PrintLog(fmt.Sprintf("%s Reading environment variables...", ui.IconWorld))
 	params := Params{
 		Datadir: os.Getenv("RUNNER_DATADIR"),
 	}
+	outputPkg.PrintLog(fmt.Sprintf("%s Environment variables read successfully", ui.IconCheckMark))
+	outputPkg.PrintLog(fmt.Sprintf("RUNNER_DATADIR=\"%s\"", params.Datadir))
 
 	runner := &K6Runner{
 		Params: params,
@@ -39,9 +45,12 @@ const K6_RUN = "run"
 const K6_SCRIPT = "script"
 
 func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionResult, err error) {
+	outputPkg.PrintLog(fmt.Sprintf("%s Preparing for test run", ui.IconTruck))
+
 	// check that the datadir exists
 	_, err = os.Stat(r.Params.Datadir)
 	if errors.Is(err, os.ErrNotExist) {
+		outputPkg.PrintLog(fmt.Sprintf("%s Datadir %s does not exist", ui.IconCross, r.Params.Datadir))
 		return result, err
 	}
 
@@ -49,6 +58,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	k6TestType := strings.Split(execution.TestType, "/")
 	if len(k6TestType) != 2 {
+		outputPkg.PrintLog(fmt.Sprintf("%s Invalid test type %s", ui.IconCross, execution.TestType))
 		return result.Err(fmt.Errorf("invalid test type %s", execution.TestType)), nil
 	}
 
@@ -112,11 +122,12 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		scriptFile := filepath.Join(directory, args[len(args)-1])
 		fileInfo, err := os.Stat(scriptFile)
 		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
+			outputPkg.PrintLog(fmt.Sprintf("%s k6 test script %s not found", ui.IconCross, scriptFile))
 			return result.Err(fmt.Errorf("k6 test script %s not found", scriptFile)), nil
 		}
 	}
 
-	output.PrintEvent("Running", directory, "k6", args)
+	outputPkg.PrintEvent("Running", directory, "k6", args)
 	runPath := directory
 	if execution.Content.Repository != nil && execution.Content.Repository.WorkingDir != "" {
 		runPath = filepath.Join(directory, execution.Content.Repository.WorkingDir)
@@ -133,16 +144,20 @@ func finalExecutionResult(output string, err error) (result testkube.ExecutionRe
 	succeeded := isSuccessful(output)
 	switch {
 	case err == nil && succeeded:
+		outputPkg.PrintLog(fmt.Sprintf("%s Test run successful", ui.IconCheckMark))
 		result.Status = testkube.ExecutionStatusPassed
 	case err == nil && !succeeded:
+		outputPkg.PrintLog(fmt.Sprintf("%s Test run failed: some checks have failed", ui.IconCross))
 		result.Status = testkube.ExecutionStatusFailed
 		result.ErrorMessage = "some checks have failed"
 	case err != nil && strings.Contains(err.Error(), "exit status 99"):
 		// tests have run, but some checks + thresholds have failed
+		outputPkg.PrintLog(fmt.Sprintf("%s Test run failed: some thresholds have failed: %s", ui.IconCross, err.Error()))
 		result.Status = testkube.ExecutionStatusFailed
 		result.ErrorMessage = "some thresholds have failed"
 	default:
 		// k6 was unable to run at all
+		outputPkg.PrintLog(fmt.Sprintf("%s Test run failed: %s", ui.IconCross, err.Error()))
 		result.Status = testkube.ExecutionStatusFailed
 		result.ErrorMessage = err.Error()
 		return result
