@@ -59,7 +59,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	k6TestType := strings.Split(execution.TestType, "/")
 	if len(k6TestType) != 2 {
 		outputPkg.PrintLog(fmt.Sprintf("%s Invalid test type %s", ui.IconCross, execution.TestType))
-		return result.Err(fmt.Errorf("invalid test type %s", execution.TestType)), nil
+		return *result.Err(fmt.Errorf("invalid test type %s", execution.TestType)), nil
 	}
 
 	k6Subtype := k6TestType[1]
@@ -123,7 +123,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		fileInfo, err := os.Stat(scriptFile)
 		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
 			outputPkg.PrintLog(fmt.Sprintf("%s k6 test script %s not found", ui.IconCross, scriptFile))
-			return result.Err(fmt.Errorf("k6 test script %s not found", scriptFile)), nil
+			return *result.Err(fmt.Errorf("k6 test script %s not found", scriptFile)), nil
 		}
 	}
 
