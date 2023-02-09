@@ -72,10 +72,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	envManager := secret.NewEnvManagerWithVars(execution.Variables)
 	envManager.GetVars(envManager.Variables)
 	for _, variable := range envManager.Variables {
-		if variable.Name == "K6_CLOUD_TOKEN" {
-			// set as OS environment variable
-			os.Setenv(variable.Name, variable.Value)
-		} else {
+		if variable.Name != "K6_CLOUD_TOKEN" {
 			// pass to k6 using -e option
 			env := fmt.Sprintf("%s=%s", variable.Name, variable.Value)
 			args = append(args, "-e", env)
@@ -83,11 +80,9 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	}
 
 	// convert executor env variables to k6 env variables
+	// Deprecated: use Basic Variable instead
 	for key, value := range execution.Envs {
-		if key == "K6_CLOUD_TOKEN" {
-			// set as OS environment variable
-			os.Setenv(key, value)
-		} else {
+		if key != "K6_CLOUD_TOKEN" {
 			// pass to k6 using -e option
 			env := fmt.Sprintf("%s=%s", key, value)
 			args = append(args, "-e", env)
