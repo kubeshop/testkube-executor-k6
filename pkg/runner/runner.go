@@ -9,9 +9,9 @@ import (
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
+	"github.com/kubeshop/testkube/pkg/executor/env"
 	outputPkg "github.com/kubeshop/testkube/pkg/executor/output"
 	"github.com/kubeshop/testkube/pkg/executor/runner"
-	"github.com/kubeshop/testkube/pkg/executor/secret"
 	"github.com/kubeshop/testkube/pkg/ui"
 )
 
@@ -69,8 +69,8 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		args = append(args, K6_RUN)
 	}
 
-	envManager := secret.NewEnvManagerWithVars(execution.Variables)
-	envManager.GetVars(envManager.Variables)
+	envManager := env.NewManagerWithVars(execution.Variables)
+	envManager.GetReferenceVars(envManager.Variables)
 	for _, variable := range envManager.Variables {
 		if variable.Name != "K6_CLOUD_TOKEN" {
 			// pass to k6 using -e option
@@ -130,7 +130,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	}
 
 	output, err := executor.Run(runPath, "k6", envManager, args...)
-	output = envManager.Obfuscate(output)
+	output = envManager.ObfuscateSecrets(output)
 	return finalExecutionResult(string(output), err), nil
 }
 
