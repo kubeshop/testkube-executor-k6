@@ -108,10 +108,10 @@ github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfn
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
-github.com/kubeshop/testkube v1.9.13-beta001 h1:YPMXlUVZEfCRHTKMfFiZVCs1i7FoJEG7+S392YUlHR4=
-github.com/kubeshop/testkube v1.9.13-beta001/go.mod h1:BYHlOSJ0SGlh9a3wRflKALF7zXDYRE0Tmn2LUThGSMM=
-github.com/kubeshop/testkube-operator v1.9.1 h1:KE3IDUjhrdT+Kn0gFFhhNkMztUioJCTLsejDMnmFDVo=
-github.com/kubeshop/testkube-operator v1.9.1/go.mod h1:9hgJs8LsvrFzERYTiawZfpq6KGXWFENa3eCk3RswQCo=
+github.com/kubeshop/testkube v1.9.15 h1:i3kY1bHRFZ+oxweFt/T1KdlD/yRiuiXt5OODWWJwRjU=
+github.com/kubeshop/testkube v1.9.15/go.mod h1:5AyykKkTT5uIZiLFGEnQDH+Hu+mNzyo8OQZb0/cjnw0=
+github.com/kubeshop/testkube-operator v1.9.2 h1:XMjlV6SAZkxnZAoC88J4Gq1hXL/sRQkeAzHfdlg3hpc=
+github.com/kubeshop/testkube-operator v1.9.2/go.mod h1:9hgJs8LsvrFzERYTiawZfpq6KGXWFENa3eCk3RswQCo=
 github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0=
