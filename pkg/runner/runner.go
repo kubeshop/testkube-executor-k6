@@ -97,20 +97,18 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	var directory string
 
-	isDir := false
+	contentType := ""
 	if execution.Content.Repository != nil {
-		contentType, err := r.fetcher.CalculateGitContentType(*execution.Content.Repository)
+		contentType, err = r.fetcher.CalculateGitContentType(*execution.Content.Repository)
 		if err != nil {
 			outputPkg.PrintLog(fmt.Sprintf("%s Can't detect git content type: %v", ui.IconCross, err))
 			return result, err
 		}
-
-		isDir = contentType == string(testkube.TestContentTypeGitDir)
 	}
 
 	// in case of a test file execution we will pass the
 	// file path as final parameter to k6
-	if !isDir {
+	if contentType != string(testkube.TestContentTypeGitDir) {
 		directory = r.Params.Datadir
 		if execution.Content.Type_ != string(testkube.TestContentTypeGitFile) &&
 			execution.Content.Type_ != string(testkube.TestContentTypeGit) {
@@ -125,7 +123,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	// in case of Git directory we will run k6 here and
 	// use the last argument as test file
-	if isDir {
+	if contentType == string(testkube.TestContentTypeGitDir) {
 		directory = filepath.Join(r.Params.Datadir, "repo")
 
 		// sanity checking for test script
