@@ -17,9 +17,6 @@ func TestRunFiles(t *testing.T) {
 	t.Run("Run k6 with simple script", func(t *testing.T) {
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitFile), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
 		execution.TestType = "k6/script"
@@ -37,9 +34,6 @@ func TestRunFiles(t *testing.T) {
 	t.Run("Run k6 with simple failing script", func(t *testing.T) {
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitFile), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
 		execution.TestType = "k6/script"
@@ -57,9 +51,6 @@ func TestRunFiles(t *testing.T) {
 	t.Run("Run k6 with arguments and simple script", func(t *testing.T) {
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitFile), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
 		execution.TestType = "k6/run"
@@ -78,9 +69,6 @@ func TestRunFiles(t *testing.T) {
 	t.Run("Run k6 with ENV variables and script", func(t *testing.T) {
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitFile), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
 		execution.TestType = "k6/script"
@@ -105,9 +93,6 @@ func TestRunAdvanced(t *testing.T) {
 	t.Run("Run k6 with scenarios", func(t *testing.T) {
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitFile), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
 		execution.TestType = "k6/run"
@@ -125,9 +110,6 @@ func TestRunAdvanced(t *testing.T) {
 	t.Run("Run k6 with checks and thresholds", func(t *testing.T) {
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitFile), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
 		execution.TestType = "k6/script"
@@ -165,9 +147,6 @@ func TestRunDirs(t *testing.T) {
 	t.Run("Run k6 from directory with script argument", func(t *testing.T) {
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitDir), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = &testkube.TestContent{
 			Type_: string(testkube.TestContentTypeGitDir),
@@ -197,9 +176,6 @@ func TestRunErrors(t *testing.T) {
 
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitFile), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
 		execution.TestType = "k6/script"
@@ -218,9 +194,6 @@ func TestRunErrors(t *testing.T) {
 		os.Setenv("RUNNER_DATADIR", ".")
 
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitFile), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = testkube.NewStringTestContent("")
 		execution.TestType = "k6/script"
@@ -241,9 +214,6 @@ func TestRunErrors(t *testing.T) {
 
 		// given
 		runner := NewRunner()
-		runner.fetcher = &MockFetcher{
-			FetchCalculateContentTypeFn: func(repo testkube.Repository) (string, error) { return string(testkube.TestContentTypeGitDir), nil },
-		}
 		execution := testkube.NewQueuedExecution()
 		execution.Content = &testkube.TestContent{
 			Type_: string(testkube.TestContentTypeGitDir),

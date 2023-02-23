@@ -9,7 +9,6 @@ import (
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
-	"github.com/kubeshop/testkube/pkg/executor/content"
 	"github.com/kubeshop/testkube/pkg/executor/env"
 	outputPkg "github.com/kubeshop/testkube/pkg/executor/output"
 	"github.com/kubeshop/testkube/pkg/executor/runner"
@@ -31,16 +30,14 @@ func NewRunner() *K6Runner {
 	outputPkg.PrintLog(fmt.Sprintf("RUNNER_DATADIR=\"%s\"", params.Datadir))
 
 	runner := &K6Runner{
-		Params:  params,
-		fetcher: content.NewFetcher(""),
+		Params: params,
 	}
 
 	return runner
 }
 
 type K6Runner struct {
-	Params  Params
-	fetcher content.ContentFetcher
+	Params Params
 }
 
 const K6_CLOUD = "cloud"
@@ -97,38 +94,39 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	var directory string
 
-	contentType := ""
-	if execution.Content.Repository != nil {
-		contentType, err = r.fetcher.CalculateGitContentType(*execution.Content.Repository)
-		if err != nil {
-			outputPkg.PrintLog(fmt.Sprintf("%s Can't detect git content type: %v", ui.IconCross, err))
-			return result, err
-		}
-	}
-
 	// in case of a test file execution we will pass the
 	// file path as final parameter to k6
-	if contentType != string(testkube.TestContentTypeGitDir) {
+	if execution.Content.Type_ == string(testkube.TestContentTypeString) ||
+		execution.Content.Type_ == string(testkube.TestContentTypeFileURI) {
 		directory = r.Params.Datadir
-		if execution.Content.Type_ != string(testkube.TestContentTypeGitFile) &&
-			execution.Content.Type_ != string(testkube.TestContentTypeGit) {
-			args = append(args, "test-content")
-		} else {
-			directory = filepath.Join(directory, "repo")
-			if execution.Content != nil && execution.Content.Repository != nil {
-				args = append(args, execution.Content.Repository.Path)
-			}
-		}
+		args = append(args, "test-content")
 	}
 
 	// in case of Git directory we will run k6 here and
 	// use the last argument as test file
-	if contentType == string(testkube.TestContentTypeGitDir) {
+	if execution.Content.Type_ == string(testkube.TestContentTypeGitFile) ||
+		execution.Content.Type_ == string(testkube.TestContentTypeGitDir) ||
+		execution.Content.Type_ == string(testkube.TestContentTypeGit) {
 		directory = filepath.Join(r.Params.Datadir, "repo")
+		path := ""
+		if execution.Content != nil && execution.Content.Repository != nil {
+			path = execution.Content.Repository.Path
+		}
+
+		fileInfo, err := os.Stat(filepath.Join(directory, path))
+		if err != nil {
+			return result, err
+		}
+
+		if fileInfo.IsDir() {
+			args[len(args)-1] = filepath.Join(path, args[len(args)-1])
+		} else {
+			args = append(args, path)
+		}
 
 		// sanity checking for test script
 		scriptFile := filepath.Join(directory, args[len(args)-1])
-		fileInfo, err := os.Stat(scriptFile)
+		fileInfo, err = os.Stat(scriptFile)
 		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
 			outputPkg.PrintLog(fmt.Sprintf("%s k6 test script %s not found", ui.IconCross, scriptFile))
 			return *result.Err(fmt.Errorf("k6 test script %s not found", scriptFile)), nil
