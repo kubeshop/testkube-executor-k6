@@ -9,6 +9,7 @@ import (
 
 	"github.com/kubeshop/testkube/pkg/api/v1/testkube"
 	"github.com/kubeshop/testkube/pkg/executor"
+	"github.com/kubeshop/testkube/pkg/executor/content"
 	"github.com/kubeshop/testkube/pkg/executor/env"
 	outputPkg "github.com/kubeshop/testkube/pkg/executor/output"
 	"github.com/kubeshop/testkube/pkg/executor/runner"
@@ -30,14 +31,16 @@ func NewRunner() *K6Runner {
 	outputPkg.PrintLog(fmt.Sprintf("RUNNER_DATADIR=\"%s\"", params.Datadir))
 
 	runner := &K6Runner{
-		Params: params,
+		Params:  params,
+		fetcher: content.NewFetcher(""),
 	}
 
 	return runner
 }
 
 type K6Runner struct {
-	Params Params
+	Params  Params
+	fetcher content.ContentFetcher
 }
 
 const K6_CLOUD = "cloud"
@@ -94,11 +97,23 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	var directory string
 
+	isDir := false
+	if execution.Content.Repository != nil {
+		contentType, err := r.fetcher.CalculateGitContentType(*execution.Content.Repository)
+		if err != nil {
+			outputPkg.PrintLog(fmt.Sprintf("%s Can't detect git content type: %v", ui.IconCross, err))
+			return result, err
+		}
+
+		isDir = contentType == string(testkube.TestContentTypeGitDir)
+	}
+
 	// in case of a test file execution we will pass the
 	// file path as final parameter to k6
-	if execution.Content.IsFile() {
+	if !isDir {
 		directory = r.Params.Datadir
-		if testkube.TestContentType(execution.Content.Type_) != testkube.TestContentTypeGitFile {
+		if execution.Content.Type_ != string(testkube.TestContentTypeGitFile) &&
+			execution.Content.Type_ != string(testkube.TestContentTypeGit) {
 			args = append(args, "test-content")
 		} else {
 			directory = filepath.Join(directory, "repo")
@@ -110,7 +125,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	// in case of Git directory we will run k6 here and
 	// use the last argument as test file
-	if execution.Content.IsDir() {
+	if isDir {
 		directory = filepath.Join(r.Params.Datadir, "repo")
 
 		// sanity checking for test script
