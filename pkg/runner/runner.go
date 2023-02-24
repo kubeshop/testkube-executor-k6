@@ -116,7 +116,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		fileInfo, err := os.Stat(filepath.Join(directory, path))
 		if err != nil {
 			outputPkg.PrintLog(fmt.Sprintf("%s k6 test directory %v not found", ui.IconCross, err))
-			return *result.Err(fmt.Errorf("k6 test directory %s not found", err)), nil
+			return *result.Err(fmt.Errorf("k6 test directory %v not found", err)), nil
 		}
 
 		if fileInfo.IsDir() {
