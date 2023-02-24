@@ -113,8 +113,14 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	if execution.Content.IsDir() {
 		directory = filepath.Join(r.Params.Datadir, "repo")
 
+		workingDir := ""
+		if execution.Content != nil && execution.Content.Repository != nil {
+			args[len(args)-1] = filepath.Join(execution.Content.Repository.Path, args[len(args)-1])
+			workingDir = execution.Content.Repository.WorkingDir
+		}
+
 		// sanity checking for test script
-		scriptFile := filepath.Join(directory, args[len(args)-1])
+		scriptFile := filepath.Join(filepath.Join(directory, workingDir), args[len(args)-1])
 		fileInfo, err := os.Stat(scriptFile)
 		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
 			outputPkg.PrintLog(fmt.Sprintf("%s k6 test script %s not found", ui.IconCross, scriptFile))
@@ -124,9 +130,8 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	outputPkg.PrintEvent("Running", directory, "k6", args)
 	runPath := directory
-	if execution.Content.Repository != nil && execution.Content.Repository.WorkingDir != "" {
+	if execution.Content != nil && execution.Content.Repository != nil && execution.Content.Repository.WorkingDir != "" {
 		runPath = filepath.Join(directory, execution.Content.Repository.WorkingDir)
-		args[len(args)-1] = filepath.Join(directory, args[len(args)-1])
 	}
 
 	output, err := executor.Run(runPath, "k6", envManager, args...)
