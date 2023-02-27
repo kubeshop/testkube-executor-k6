@@ -109,8 +109,10 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		execution.Content.Type_ == string(testkube.TestContentTypeGit) {
 		directory = filepath.Join(r.Params.Datadir, "repo")
 		path := ""
+		workingDir := ""
 		if execution.Content != nil && execution.Content.Repository != nil {
 			path = execution.Content.Repository.Path
+			workingDir = execution.Content.Repository.WorkingDir
 		}
 
 		fileInfo, err := os.Stat(filepath.Join(directory, path))
@@ -126,7 +128,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		}
 
 		// sanity checking for test script
-		scriptFile := filepath.Join(directory, args[len(args)-1])
+		scriptFile := filepath.Join(filepath.Join(directory, workingDir), args[len(args)-1])
 		fileInfo, err = os.Stat(scriptFile)
 		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
 			outputPkg.PrintLog(fmt.Sprintf("%s k6 test script %s not found", ui.IconCross, scriptFile))
@@ -138,7 +140,6 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 	runPath := directory
 	if execution.Content.Repository != nil && execution.Content.Repository.WorkingDir != "" {
 		runPath = filepath.Join(directory, execution.Content.Repository.WorkingDir)
-		args[len(args)-1] = filepath.Join(directory, args[len(args)-1])
 	}
 
 	output, err := executor.Run(runPath, "k6", envManager, args...)
