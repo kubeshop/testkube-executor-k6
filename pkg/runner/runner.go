@@ -128,7 +128,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		}
 
 		// sanity checking for test script
-		scriptFile := filepath.Join(filepath.Join(directory, workingDir), args[len(args)-1])
+		scriptFile := filepath.Join(directory, workingDir, args[len(args)-1])
 		fileInfo, err = os.Stat(scriptFile)
 		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
 			outputPkg.PrintLog(fmt.Sprintf("%s k6 test script %s not found", ui.IconCross, scriptFile))
