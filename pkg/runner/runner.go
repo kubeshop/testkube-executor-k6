@@ -103,7 +103,7 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 		} else {
 			directory = filepath.Join(directory, "repo")
 			if execution.Content != nil && execution.Content.Repository != nil {
-				args = append(args, filepath.Join(execution.Content.Repository.WorkingDir, execution.Content.Repository.Path))
+				args = append(args, execution.Content.Repository.Path)
 			}
 		}
 	}
