@@ -96,32 +96,40 @@ func (r *K6Runner) Run(execution testkube.Execution) (result testkube.ExecutionR
 
 	// in case of a test file execution we will pass the
 	// file path as final parameter to k6
-	if execution.Content.IsFile() {
+	if execution.Content.Type_ == string(testkube.TestContentTypeString) ||
+		execution.Content.Type_ == string(testkube.TestContentTypeFileURI) {
 		directory = r.Params.Datadir
-		if testkube.TestContentType(execution.Content.Type_) != testkube.TestContentTypeGitFile {
-			args = append(args, "test-content")
-		} else {
-			directory = filepath.Join(directory, "repo")
-			if execution.Content != nil && execution.Content.Repository != nil {
-				args = append(args, execution.Content.Repository.Path)
-			}
-		}
+		args = append(args, "test-content")
 	}
 
 	// in case of Git directory we will run k6 here and
 	// use the last argument as test file
-	if execution.Content.IsDir() {
+	if execution.Content.Type_ == string(testkube.TestContentTypeGitFile) ||
+		execution.Content.Type_ == string(testkube.TestContentTypeGitDir) ||
+		execution.Content.Type_ == string(testkube.TestContentTypeGit) {
 		directory = filepath.Join(r.Params.Datadir, "repo")
-
+		path := ""
 		workingDir := ""
-		if execution.Content.Repository != nil {
-			args[len(args)-1] = filepath.Join(execution.Content.Repository.Path, args[len(args)-1])
+		if execution.Content != nil && execution.Content.Repository != nil {
+			path = execution.Content.Repository.Path
 			workingDir = execution.Content.Repository.WorkingDir
 		}
 
+		fileInfo, err := os.Stat(filepath.Join(directory, path))
+		if err != nil {
+			outputPkg.PrintLog(fmt.Sprintf("%s k6 test directory %v not found", ui.IconCross, err))
+			return *result.Err(fmt.Errorf("k6 test directory %v not found", err)), nil
+		}
+
+		if fileInfo.IsDir() {
+			args[len(args)-1] = filepath.Join(path, args[len(args)-1])
+		} else {
+			args = append(args, path)
+		}
+
 		// sanity checking for test script
-		scriptFile := filepath.Join(filepath.Join(directory, workingDir), args[len(args)-1])
-		fileInfo, err := os.Stat(scriptFile)
+		scriptFile := filepath.Join(directory, workingDir, args[len(args)-1])
+		fileInfo, err = os.Stat(scriptFile)
 		if errors.Is(err, os.ErrNotExist) || fileInfo.IsDir() {
 			outputPkg.PrintLog(fmt.Sprintf("%s k6 test script %s not found", ui.IconCross, scriptFile))
 			return *result.Err(fmt.Errorf("k6 test script %s not found", scriptFile)), nil
