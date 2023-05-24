@@ -1,6 +1,6 @@
 # DEPRECATED
 
-This repository is no longer supported, please consider using [Testkube](https://github.com/kubeshop/testkube) instead.
+This executor was moved into [Testkube](https://github.com/kubeshop/testkube/tree/develop/contrib/executor/k6) repository.
 
 ![Testkube Logo](https://raw.githubusercontent.com/kubeshop/testkube/main/assets/testkube-color-gray.png)
 
